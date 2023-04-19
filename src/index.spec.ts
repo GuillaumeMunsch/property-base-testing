@@ -1,18 +1,56 @@
 import * as jsc from "jsverify";
 
-function linear(x: number): number {
-  return 0.5 * x + 1;
-}
+const manhattanDistance = (x: number, y: number) => {
+  if (x !== y) return Math.abs(y - x);
+  return 0;
+};
 
-it("the slope between two points should be constant", function () {
-  const constantSlope = jsc.forall(jsc.integer, jsc.integer, function (x1: number, x2: number): boolean {
-    if (x1 === x2) {
-      return true;
-    }
-    const y1 = linear(x1);
-    const y2 = linear(x2);
-    const slope = (y2 - y1) / (x2 - x1);
-    return slope === 0.5;
+it("Should test the separation when the 2 points are the same. Distance should be null", () => {
+  const constantSlope = jsc.forall(jsc.integer, (x): boolean => {
+    const distance = manhattanDistance(x, x);
+    return distance === 0;
   });
+
+  jsc.assert(constantSlope);
+});
+
+it("Should test the separation when the 2 points are NOT the same. Distance should NOT be null", () => {
+  const constantSlope = jsc.forall(jsc.integer, jsc.integer, (x, y): boolean => {
+    if (x === y) return true;
+    const distance = manhattanDistance(x, y);
+    return distance !== 0;
+  });
+
+  jsc.assert(constantSlope);
+});
+
+it("Should test the 'inégalité triangulaire'", () => {
+  const constantSlope = jsc.forall(jsc.integer, jsc.integer, jsc.integer, (x, y, z): boolean => {
+    const distanceXZ = manhattanDistance(x, z);
+    const distanceXY = manhattanDistance(x, y);
+    const distanceYZ = manhattanDistance(y, z);
+    return distanceXZ <= distanceXY + distanceYZ;
+  });
+
+  jsc.assert(constantSlope);
+});
+
+it("Should test that a distance is calculated", () => {
+  const constantSlope = jsc.forall(jsc.integer, (x): boolean => {
+    const additionalValue = 5;
+    const distanceXY = manhattanDistance(x, x + 5);
+    return distanceXY === additionalValue;
+  });
+
+  jsc.assert(constantSlope);
+});
+
+it("Should test that a distance is calculated and symetrical", () => {
+  const constantSlope = jsc.forall(jsc.integer, jsc.integer, (x, y): boolean => {
+    const distanceXY = manhattanDistance(x, y);
+    const distanceYX = manhattanDistance(y, x);
+    return distanceXY === distanceYX;
+  });
+
   jsc.assert(constantSlope);
 });
